@@ -1,6 +1,9 @@
 # Safe SSH MCP Server
 A secure and scoped Model Context Protocol (MCP) server for executing safe, read-only diagnostic commands over SSH.
 
+## Badges
+[![Snyk Vulnerability Database report](https://snyk.io/advisor/images/snyk-poweredby.svg)](https://security.snyk.io/package/pip/safe-ssh-server) - security check  
+
 ## Overview
 
 The core philosophy behind this MCP server is safety first. Instead of providing an AI agent with an unrestricted bash shell, this server exposes only carefully curated, read-only commands for system diagnostics and monitoring.

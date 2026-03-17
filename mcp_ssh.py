@@ -10,6 +10,8 @@ from typing import Optional, Dict, Any, ContextManager
 from contextlib import contextmanager
 import threading
 import time
+import argparse
+import sys
 
 import paramiko
 #from mcp.server.fastmcp import FastMCP
@@ -391,15 +393,29 @@ def get_top(
 ## == END OF TOOLS == ##
 
 def main():
+    # 1. Set up command line arguments
+    parser = argparse.ArgumentParser(description="Safe SSH MCP Server")
+    parser.add_argument("--transport", choices=["stdio", "sse", "streamable-http"], 
+                        help="Override transport type (defaults to config file)")
+    parser.add_argument("--host", help="Override host binding")
+    parser.add_argument("--port", type=int, help="Override port")
+    args = parser.parse_args()
+
+    # 2. Load config file
     cfg = load_config()
-    transport_type = cfg.get("transport", "sse")
-    host = cfg["host"]
-    port = int(cfg["port"])
+
+    # 3. CLI arguments take priority over config file
+    transport_type = args.transport or cfg.get("transport", "sse")
+    host = args.host or cfg.get("host", "127.0.0.1")
+    port = args.port or int(cfg.get("port", 4747))
+
+    # 4. Boot the server
     if transport_type in ("sse", "streamable-http"):
-        print(f"Starting MCP server [{transport_type}] on http://{host}:{port}")
+        # SSE Mode: Print safely to stderr, then start the web server
+        print(f"Starting MCP server [{transport_type}] on http://{host}:{port}", file=sys.stderr)
         mcp.run(transport=transport_type, host=host, port=port)
     else:
-        # Fallback to standard I/O for CLI/Desktop clients
+        # STDIO Mode: Run silently for Cline/Desktop clients
         mcp.run(transport="stdio")
 
 if __name__ == "__main__":
