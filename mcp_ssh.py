@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import socket
 import configparser
-import uvicorn
 import os
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, ContextManager
@@ -185,9 +184,17 @@ def run_ssh_command(
 ) -> Dict[str, Any]:
     """Helper to run an SSH command and capture generalized return payload/errors."""
     collected_at = datetime.now(timezone.utc).isoformat()
+    
+    # 1. Expand the path and validate it BEFORE attempting to connect
+    if key_path:
+        key_path = os.path.expanduser(key_path)
+        if not os.path.isfile(key_path):
+            return {
+                "ok": False, 
+                "error": f"Configuration error: The SSH key file '{key_path}' does not exist."
+            }
+
     try:
-        #with ssh_session(
-        #) as client
         client = get_ssh_client(
             host, user, port, password, key_path, timeout, accept_new_hostkey
         )
@@ -198,10 +205,25 @@ def run_ssh_command(
             "collected_at_utc": collected_at,
             "data": result,
         }
+        
+    # 2. Provide hyper-specific feedback for authentication failures
     except paramiko.AuthenticationException:
-        return {"ok": False, "error": "Authentication failed."}
+        auth_msg = "Authentication failed. "
+        if key_path:
+            auth_msg += f"The key at '{key_path}' was rejected. Verify it is correct and unlocked."
+        elif password:
+            auth_msg += "The provided password was rejected."
+        else:
+            auth_msg += "No valid SSH key or password was provided, and the server rejected default keys."
+        return {"ok": False, "error": auth_msg}
+        
+    # 3. Catch specific network/protocol errors for better AI debugging
+    except socket.error as e:
+        return {"ok": False, "error": f"Network error: Could not connect to {host}:{port}. ({str(e)})"}
+    except paramiko.SSHException as e:
+        return {"ok": False, "error": f"SSH protocol error: {str(e)}"}
     except Exception as e:
-        return {"ok": False, "error": f"Error: {str(e)}"}
+        return {"ok": False, "error": f"Unexpected error: {str(e)}"}
 
 ## == START OF TOOLS == ##
 

@@ -2,7 +2,7 @@
 A secure and scoped Model Context Protocol (MCP) server for executing safe, read-only diagnostic commands over SSH.
 
 ## Badges
-[![Snyk Vulnerability Database report](https://snyk.io/advisor/images/snyk-poweredby.svg)](https://security.snyk.io/package/pip/safe-ssh-server) - security check  
+[![Snyk Vulnerability Database report](https://snyk.io/advisor/images/snyk-poweredby.svg)](https://security.snyk.io/package/pip/safe-ssh-mcp) - security check  
 
 ## Overview
 
