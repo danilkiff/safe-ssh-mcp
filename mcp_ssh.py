@@ -426,6 +426,71 @@ def get_systemd_status(
     cmd = f"systemctl status {safe_daemon}"
     return run_ssh_command(host, user, cmd, port, password, key_path, timeout, accept_new_hostkey)
 
+import json
+@mcp.tool()
+def get_ps_aux_top_cpu_consumers(
+    host: str,
+    user: str,
+    port: int = 22,
+    password: Optional[str] = None,
+    key_path: Optional[str] = None,
+    timeout: int = 20,
+    accept_new_hostkey: bool = False,
+) -> Dict[str, Any]:
+    """
+    Lists top 10 cpu consumers, CPU desc
+    """
+    cmd = "ps aux --sort=-%cpu | head -n 10"
+    return run_ssh_command(host, user, cmd, port, password, key_path, timeout, accept_new_hostkey)
+
+@mcp.tool()
+def get_ps_aux_top_mem_consumers(
+    host: str,
+    user: str,
+    port: int = 22,
+    password: Optional[str] = None,
+    key_path: Optional[str] = None,
+    timeout: int = 20,
+    accept_new_hostkey: bool = False,
+) -> Dict[str, Any]:
+    """
+    Lists top 10 mem consumers, MEM desc
+    """
+    cmd = "ps aux --sort=-%mem | head -n 10"
+    return run_ssh_command(host, user, cmd, port, password, key_path, timeout, accept_new_hostkey)
+
+@mcp.tool()
+def get_free_memory(
+    host: str,
+    user: str,
+    port: int = 22,
+    password: Optional[str] = None,
+    key_path: Optional[str] = None,
+    timeout: int = 20,
+    accept_new_hostkey: bool = False,
+) -> Dict[str, Any]:
+    """
+    Returns free memory, swap (total/free), page cache, HugePages and so on
+    """
+    cmd = "free -h && echo && cat /proc/meminfo"
+    return run_ssh_command(host, user, cmd, port, password, key_path, timeout, accept_new_hostkey)
+
+@mcp.tool()
+def get_memory_pressure(
+    host: str,
+    user: str,
+    port: int = 22,
+    password: Optional[str] = None,
+    key_path: Optional[str] = None,
+    timeout: int = 20,
+    accept_new_hostkey: bool = False,
+) -> Dict[str, Any]:
+    """
+    Returns memory pressure if supported
+    """
+    cmd = "cat /proc/pressure/memory 2>/dev/null || echo 'PSI not supported'"
+    return run_ssh_command(host, user, cmd, port, password, key_path, timeout, accept_new_hostkey)
+
 @mcp.tool()
 def get_top(
     host: str,
@@ -523,6 +588,7 @@ def get_service_logs_from_journalctl(
     cmd = f"journalctl -xeu {safe_service} -n {lines} --no-pager"
     return run_ssh_command(host, user, cmd, port, password, key_path, timeout, accept_new_hostkey)
 ## == END OF TOOLS == ##
+
 
 def main():
     # 1. Set up command line arguments
